@@ -736,8 +736,8 @@ function createPanel(){
     let span_div2 = document.createElement('span');
     span_div2.className = "span";
 
-    let shop_h = createPanelMenu("shop_text","Магазин","award_text","award_div","shop_div");
-    let award_h = createPanelMenu("award_text","Улучшения","shop_text","shop_div","award_div");
+    let shop_h = createPanelMenu("shop_text","Store","award_text","award_div","shop_div");
+    let award_h = createPanelMenu("award_text","Upgrade","shop_text","shop_div","award_div");
     award_h.style.textDecoration = "none";
     
     span_div1.appendChild(shop_h);
