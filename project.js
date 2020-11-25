@@ -391,7 +391,7 @@ function createFortress(){
                 putItem("fortress");
             }   
         }else{
-            if(!shopCreaturesInfo[name].count){
+            if(shopCreaturesInfo[name].count){
                 sellItem('fortress');
                 if(!shopCreaturesInfo[name].count){document.getElementById("map").removeChild(document.getElementById('fortress_table'))}
             }
@@ -405,6 +405,7 @@ function createFortress(){
     fortress_div.append(fortress);
     return fortress_div;
 }
+
 
 
 function createWizard(){
