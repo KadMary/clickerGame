@@ -1,6 +1,6 @@
 
 let isSell = 0;
-let money = 60000000;
+let money = 0;
 let passiveEarn = 0;
 scaleFactor = 1.1;
 
