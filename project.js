@@ -501,7 +501,7 @@ function createShop(){
     plus_minus_div.style.left = "260px";
     plus_minus_div.style.top = "5px";
     let plus = document.createElement('img')
-    plus.src = 'images/plus.png';
+    plus.src = './images/plus.png';
     plus.style.position = "relative";
     plus.style.width = "20px";
     plus.style.border = "2px solid #ffd700";
@@ -513,7 +513,7 @@ function createShop(){
    }
 
     let minus = document.createElement('img')
-    minus.src = 'images/minus.png';
+    minus.src = './images/minus.png';
     minus.style.position = "relative";
     minus.style.marginLeft = "3px";
     minus.style.width = "20px";
