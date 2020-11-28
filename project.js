@@ -1,5 +1,5 @@
 let isSell = 0;
-let money = 999999999999999;
+let money = 0;
 let passiveEarn = 0;
 let isGame = 0;
 scaleFactor = 1.1;
