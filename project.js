@@ -1,5 +1,5 @@
 let isSell = 0;
-let money = 99999999990;
+let money = 9999999990;
 let passiveEarn = 0;
 let isGame = 0;
 scaleFactor = 1.1;
@@ -711,6 +711,7 @@ function createMap(){
     map_div.style.height = "100vh";
     map_div.style.marginRight = "342px";
     map_div.style.marginLeft= "342px";
+    map_div.style.overflowY = "scroll";
     return map_div;
 }
 function createPanelMenu(id,textContent,byIdText,byIdOurDiv,byIdDiv){
@@ -788,7 +789,6 @@ function createButtonNewGameDiv(){
         }
         isGame = 1;
         document.getElementById("menuDiv").style.display = "none";
-        document.style.overflowY = "visibile";
     }
     return button_div;
 }
@@ -822,7 +822,6 @@ function resumeGame(){
     putSavedAwards()
     isGame = 1;
     document.getElementById("menuDiv").style.display = "none"; 
-    document.style.overflowY = "visibile";   
 }
 function createButtonResumeDiv(){
     let button_div = document.createElement('div');
