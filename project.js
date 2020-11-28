@@ -1,5 +1,5 @@
 let isSell = 0;
-let money = 999999999999;
+let money = 0;
 let passiveEarn = 0;
 let isGame = 0;
 scaleFactor = 1.1;
@@ -506,7 +506,7 @@ function createShop(){
     plus_minus_div.style.left = "260px";
     plus_minus_div.style.top = "5px";
     let plus = document.createElement('img')
-    plus.src = 'images/plus.png';
+    plus.src = 'images/Plus.png';
     plus.style.position = "relative";
     plus.style.width = "20px";
     plus.style.cursor = "pointer";
@@ -518,7 +518,7 @@ function createShop(){
         plus.style.border = "2px solid #ffd700";
     }
     let minus = document.createElement('img')
-    minus.src = 'images/minus.png';
+    minus.src = 'images/Minus.png';
     minus.style.position = "relative";
     minus.style.marginLeft = "3px";
     minus.style.width = "20px";
@@ -548,6 +548,7 @@ function createAwardPrice(name, awardCreaturesItem, cost){
     awardCost.className = "priceAwardList";
     awardCost.setAttribute("id", name);
     awardCost.textContent = cost;
+    awardCost.style.userSelect = "none";
     awardCost.setAttribute("awardCreaturesItem", awardCreaturesItem)
     function changePrice(){ 
         let new_cost = eval("awardsCreaturesInfo."+awardCreaturesItem+".cost") 
@@ -560,6 +561,7 @@ function createAwardPrice(name, awardCreaturesItem, cost){
 function createAwardItem(image, alt, id){
     let award = document.createElement('img');
     award.src = image;
+    award.style.cursor = "pointer";
     award.addEventListener('load', LoadAward, false);
     function LoadAward() { 
         award.setAttribute('alt', alt);
@@ -786,6 +788,7 @@ function createButtonNewGameDiv(){
         }
         isGame = 1;
         document.getElementById("menuDiv").style.display = "none";
+        document.style.overflowY = "visibile";
     }
     return button_div;
 }
@@ -818,7 +821,8 @@ function resumeGame(){
     countPassiveEarn();
     putSavedAwards()
     isGame = 1;
-    document.getElementById("menuDiv").style.display = "none";    
+    document.getElementById("menuDiv").style.display = "none"; 
+    document.style.overflowY = "visibile";   
 }
 function createButtonResumeDiv(){
     let button_div = document.createElement('div');
