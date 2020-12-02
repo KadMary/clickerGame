@@ -1,5 +1,5 @@
 let isSell = 0;
-let money = 9999999990;
+let money = 0;
 let passiveEarn = 0;
 let isGame = 0;
 scaleFactor = 1.1;
@@ -131,6 +131,25 @@ function firework(){
         startVelocity: 45,
     });
 }
+function checkBorder(){     
+    for(element in shopCreaturesInfo){
+        if(shopCreaturesInfo[element].cost <= money)
+            document.getElementById(element).style.border = "2px solid #ffd700";
+        else   
+            document.getElementById(element).style.border = "2px solid gray";  
+    }
+    for(element in awardsCreaturesInfo) {
+        if(awardsCreaturesInfo[element].isExist){
+            document.getElementById(element).style.border = "2px solid green";
+        }
+        else {
+            if(awardsCreaturesInfo[element].cost <= money)
+                document.getElementById(element).style.border = "2px solid #ffd700";
+            else   
+                document.getElementById(element).style.border = "2px solid gray"; 
+        }
+    }
+}
 function createTable(name,top=0){
     let table_div = document.createElement('div');
     table_div.setAttribute('id', name + "_" + "table");
@@ -141,17 +160,15 @@ function createTable(name,top=0){
     table_div.style.height = "80px";
     table_div.style.border = "2px solid #389c51";
     table_div.style.overflowY = "scroll";
-    document.getElementById("mapDiv").append(table_div);
+    return table_div;
 }
 function putSavedItem(name, top){
     let n = eval('shopCreaturesInfo.' + name + ".count");
-    if(n>0)    createTable(name,top);   
-    for(let i=1; i<=n; i++)
-    {
+    if(n>0)    document.getElementById("mapDiv").append(createTable(name,top));   
+    for(let i=1; i<=n; i++){
         let item = document.createElement('img');
         item.src = document.getElementById(name).src;
-        let count = i;
-        item.setAttribute('id',name + '_' + count)
+        item.setAttribute('id',name + '_' + i)
         item.style.position="relative";
         item.style.width = "40px";
         document.getElementById(name + "_table").append(item);
@@ -162,20 +179,23 @@ function putItem(name){
     shopCreaturesInfo[name].cost = (shopCreaturesInfo[name].cost * scaleFactor).toFixed(0);
     document.getElementById(name +"_price").dispatchEvent(new Event("click"));
     document.getElementById(name +"_count").dispatchEvent(new Event("click"));
-    countPassiveEarn();
+    passiveEarn = countPassiveEarn();
+    document.getElementById("earn").dispatchEvent(new Event("click"));
     let item = document.createElement('img');
     item.src = document.getElementById(name).src;
     let count = eval('shopCreaturesInfo.' + name + ".count");
     item.setAttribute('id',name + '_' + count)
     item.style.position="relative";
     item.style.width = "40px";
-    document.getElementById(name + "_table").append(item);
+    document.getElementById(name + "_table").append(item);  
+    checkBorder();  
 }
 function countPassiveEarn(){
-    passiveEarn = 0;
+    earn = 0;
     for(element in shopCreaturesInfo){
-        passiveEarn = passiveEarn + shopCreaturesInfo[element].count*shopCreaturesInfo[element].profit;
+        earn = earn + shopCreaturesInfo[element].count*shopCreaturesInfo[element].profit;
     }
+    return earn;
 }
 function buyItem(cost){
     if(money >= cost){
@@ -192,7 +212,8 @@ function sellItem(name)
     money = Math.round(Number(money) + Number(shopCreaturesInfo[name].cost/2));
     document.getElementById("text").dispatchEvent(new Event("click"));
     shopCreaturesInfo[name].cost = Math.round(shopCreaturesInfo[name].cost/scaleFactor);
-    countPassiveEarn();
+    passiveEarn = countPassiveEarn();
+    document.getElementById("earn").dispatchEvent(new Event("click"));
     document.getElementById(name + "_count").dispatchEvent(new Event("click"));
     document.getElementById(name + "_price").dispatchEvent(new Event("click"));
 }
@@ -213,7 +234,6 @@ function priceList(price){
     else{
         return fromCostToPriceList(price,1e12) + " trillion";
     }
-    
 }
 function createShopPrice(name){
     let itemCost = document.createElement("p");
@@ -222,11 +242,11 @@ function createShopPrice(name){
     itemCost.style.userSelect = "none";
     itemCost.textContent = shopCreaturesInfo[name].cost;
     itemCost.setAttribute("name", name)
-    function changePrice(){ 
+    function changeShopPrice(){ 
         let new_cost = eval("shopCreaturesInfo." + name + ".cost") 
         itemCost.textContent = priceList(new_cost);
     }
-    itemCost.addEventListener("click",changePrice,false);
+    itemCost.addEventListener("click",changeShopPrice,false);
     itemCost.dispatchEvent(new Event("click"));
     return itemCost;
 }
@@ -236,53 +256,89 @@ function createShopItemСount(name){
     itemCount.setAttribute("id", name + "_count");
     itemCount.textContent = shopCreaturesInfo[name].count;
     itemCount.style.userSelect = "none";
-    function changeCount(){ 
+    function changeShopCount(){ 
         let new_count = eval("shopCreaturesInfo." + name + ".count") 
         itemCount.textContent = priceList(new_count);
     }
-    itemCount.addEventListener("click",changeCount,false);
+    itemCount.addEventListener("click",changeShopCount,false);
     return itemCount;
 }
 function createShopItem(alt, id){
     image = "images/" + id + ".png";
-    let peasant = document.createElement('img');
-    peasant.src = image;
-    peasant.addEventListener('load', LoadPeasant, false);
-    function LoadPeasant() { 
-        peasant.setAttribute('alt', alt);
-        peasant.setAttribute('id', id);
-        peasant.className = "imageShop";
+    let item = document.createElement('img');
+    item.src = image;
+    item.addEventListener('load', loadShopItem, false);
+    function loadShopItem() { 
+        item.setAttribute('alt', alt);
+        item.setAttribute('id', id);
+        item.className = "imageShop";
     }
-    return peasant;
+    return item;
+}
+function createAwardInfoDiv(id,name){
+    let info_div = document.createElement('div');
+    info_div.id = "info_"+id;
+    info_div.style.display = "none";
+    info_div.style.padding = "10px";
+    info_div.style.background = "#f3f3f3";
+    info_div.style.height = "40px";
+    info_div.style.width = "80px";
+    info_div.style.left = "-130px";
+    info_div.textContent = "Improves the "+name;
+    return info_div;
+}
+function createShopInfoDiv(name){
+    let info_div = document.createElement('div');
+    info_div.id = "info_"+name;
+    info_div.style.display = "none";
+    info_div.style.padding = "10px";
+    info_div.style.background = "#f3f3f3";
+    info_div.style.height = "50px";
+    info_div.style.width = "110px";
+    info_div.style.left = "-130px";
+    info_div.addEventListener('click', changeTextContent, false);
+    function changeTextContent(){
+        let new_count = eval("shopCreaturesInfo." + name + ".count");
+        let new_profit = eval("shopCreaturesInfo." + name + ".profit");
+        info_div.textContent = "Profit(1):" + priceList(new_profit) + "\nProfit(all):" + priceList(new_profit*new_count);
+    }
+    return info_div;
 }
 function createPeasant(){
     let peasant_div = document.createElement('div');
     peasant_div.style.right = "50px";
     peasant_div.style.top = "0px";
     peasant_div.style.position = "absolute";
-    let info_div = document.createElement('div');
-    info_div.textContent = shopCreaturesInfo.peasant.profit;
-    info_div.style.position = "relative";
-    info_div.style.width = "30px";
-    info_div.style.left = "10px";
-    info_div.setAttribute('data-tooltip', "Подсказка")
     let name = "peasant";
     let peasantCost = createShopPrice("peasant");
     let peasantCount = createShopItemСount("peasant");
     let peasant = createShopItem('Peasant','peasant');
+    let info_div = createShopInfoDiv("peasant");
     peasant.style.cursor = "pointer";
-    peasant.addEventListener('click', addCountUp, false);
-    peasant.addEventListener('mouseover', infoIn, false);
-    peasant.addEventListener('mouseout', infoOut, false);
-    function addCountUp(){
+    peasant.addEventListener('click', addCountUpPeasant, false);
+    peasant.addEventListener('mouseover', showInfoPeasant, false);
+    peasant.addEventListener('mouseout', hideInfoPeasant, false);
+    function showInfoPeasant(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+        document.getElementById("info_peasant").dispatchEvent(new Event('click'));
+    }
+    function hideInfoPeasant(){
+        info_div.style.display = "none";
+    }
+    function addCountUpPeasant(){
         if(!isSell){
             if(buyItem(shopCreaturesInfo.peasant.cost)){
-                if(!shopCreaturesInfo[name].count){createTable('peasant',0);}
-                putItem('peasant');
+                if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").append(createTable('peasant',0));}
+                putItem('peasant');  
+                document.getElementById("info_peasant").dispatchEvent(new Event('click'));
             }
         }else{
             if(shopCreaturesInfo[name].count){
                 sellItem('peasant');
+                document.getElementById("info_peasant").dispatchEvent(new Event('click'));
+                checkBorder();  
                 if(shopCreaturesInfo[name].count == 0){
                     document.getElementById("mapDiv").removeChild(document.getElementById('peasant_table'))
                 }
@@ -290,15 +346,7 @@ function createPeasant(){
 
         }
     }
-    function infoIn(){
-        info_div.visibility = "visible";
-        console.log("in");
-    }
-    function infoOut(){
-        info_div.visibility = "hidden";
-        console.log("out");
-    }
-    peasant.append(info_div);
+    peasant_div.append(info_div);
     peasant_div.append(peasantCost);
     peasant_div.append(peasantCount);
     peasant_div.append(peasant);
@@ -311,24 +359,40 @@ function createHut(){
     hut_div.style.position = "absolute";    
     let name = "hut";
     let hut = createShopItem('Hut','hut');
+    let info_div = createShopInfoDiv("hut");
     hut.style.cursor = "pointer";
-        hut.addEventListener('click', addCountUp, false);
-        function addCountUp(){
-            if(!isSell){
-                if(buyItem(shopCreaturesInfo.hut.cost)){
-                    if(!shopCreaturesInfo[name].count){createTable('hut',1);}
-                    putItem('hut');
-                }
-            }else{
-                if(shopCreaturesInfo[name].count){
-                    sellItem('hut');
-                    if(shopCreaturesInfo[name].count == 0){document.getElementById("mapDiv").removeChild(document.getElementById('hut_table'))}
-                }
-
+    hut.addEventListener('click', addCountUpHut, false);
+    hut.addEventListener('mouseover', showInfoHut, false);
+    hut.addEventListener('mouseout', hideInfoHut, false);
+    function showInfoHut(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+        document.getElementById("info_hut").dispatchEvent(new Event('click'));
+    }
+    function hideInfoHut(){
+        info_div.style.display = "none";
+    }
+    function addCountUpHut(){
+        if(!isSell){
+            if(buyItem(shopCreaturesInfo.hut.cost)){
+                if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").append(createTable('hut',1));}
+                putItem('hut');
+                document.getElementById("info_hut").dispatchEvent(new Event('click'));
             }
+        }else{
+            if(shopCreaturesInfo[name].count){
+                sellItem('hut');
+                document.getElementById("info_hut").dispatchEvent(new Event('click'));
+                checkBorder();  
+                if(shopCreaturesInfo[name].count == 0){document.getElementById("mapDiv").removeChild(document.getElementById('hut_table'))}
+            }
+
         }
+    }
     let hutCost = createShopPrice("hut");
     let hutCount = createShopItemСount("hut");
+    hut_div.append(info_div)
     hut_div.append(hutCost);
     hut_div.append(hutCount);
     hut_div.append(hut);
@@ -341,23 +405,39 @@ function createWarrior(){
     warrior_div.style.position = "absolute";    
     let name = "warrior";
     let warrior = createShopItem('Warrior','warrior');
+    let info_div = createShopInfoDiv("warrior");
     warrior.style.cursor = "pointer";
-    warrior.addEventListener('click', addCountUp, false);
-    function addCountUp(){
+    warrior.addEventListener('click', addCountUpWarrior, false);
+    warrior.addEventListener('mouseover', showInfoWarrior, false);
+    warrior.addEventListener('mouseout', hideInfoWarrior, false);
+    function showInfoWarrior(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+        document.getElementById("info_warrior").dispatchEvent(new Event('click'));
+    }
+    function hideInfoWarrior(){
+        info_div.style.display = "none";
+    }
+    function addCountUpWarrior(){
         if(!isSell){
             if(buyItem(shopCreaturesInfo.warrior.cost)){
-                if(!shopCreaturesInfo[name].count){createTable('warrior',2);}
+                if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").append(createTable('warrior',2));}
                 putItem("warrior");
+                document.getElementById("info_warrior").dispatchEvent(new Event('click'));
             }
         }else{
             if(shopCreaturesInfo[name].count){
                 sellItem('warrior');
+                document.getElementById("info_warrior").dispatchEvent(new Event('click'));
+                checkBorder();  
                 if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").removeChild(document.getElementById('warrior_table'))}
             }
         }
     }
     let warriorCost = createShopPrice("warrior");
     let warriorCount = createShopItemСount("warrior");
+    warrior_div.append(info_div);
     warrior_div.append(warriorCost);
     warrior_div.append(warriorCount);
     warrior_div.append(warrior);
@@ -370,23 +450,39 @@ function createFortress(){
     fortress_div.style.position = "absolute";   
     let name = "fortress";
     let fortress = createShopItem('Fortress','fortress');
+    let info_div = createShopInfoDiv("fortress");
     fortress.style.cursor = "pointer";
-    fortress.addEventListener('click', addCountUp, false);
-    function addCountUp(){
+    fortress.addEventListener('click', addCountUpFortress, false);
+    fortress.addEventListener('mouseover', showInfoFortress, false);
+    fortress.addEventListener('mouseout', hideInfoFortress, false);
+    function showInfoFortress(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+        document.getElementById("info_fortress").dispatchEvent(new Event('click'));
+    }
+    function hideInfoFortress(){
+        info_div.style.display = "none";
+    }
+    function addCountUpFortress(){
         if(!isSell){
             if(buyItem(shopCreaturesInfo.fortress.cost)){
-                if(!shopCreaturesInfo[name].count){createTable("fortress",3);}
+                if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").append(createTable("fortress",3));}
                 putItem("fortress");
+                document.getElementById("info_fortress").dispatchEvent(new Event('click'));
             }   
         }else{
             if(shopCreaturesInfo[name].count){
                 sellItem('fortress');
+                document.getElementById("info_fortress").dispatchEvent(new Event('click'));
+                checkBorder();  
                 if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").removeChild(document.getElementById('fortress_table'))}
             }
         }
     }
     let fortressCost = createShopPrice("fortress");
     let fortressCount = createShopItemСount("fortress");
+    fortress_div.append(info_div);
     fortress_div.append(fortressCost);
     fortress_div.append(fortressCount);
     fortress_div.append(fortress);
@@ -399,23 +495,39 @@ function createWizard(){
     wizard_div.style.position = "absolute";    
     let name = "wizard";
     let wizard = createShopItem('Wizard','wizard');
+    let info_div = createShopInfoDiv("wizard");
     wizard.style.cursor = "pointer";
-    wizard.addEventListener('click', addCountUp, false);
-    function addCountUp(){
+    wizard.addEventListener('click', addCountUpWizard, false);
+    wizard.addEventListener('mouseover', showInfoWizard, false);
+    wizard.addEventListener('mouseout', hideInfoWizard, false);
+    function showInfoWizard(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+        document.getElementById("info_wizard").dispatchEvent(new Event('click'));
+    }
+    function hideInfoWizard(){
+        info_div.style.display = "none";
+    }
+    function addCountUpWizard(){
         if(!isSell){
             if(buyItem(shopCreaturesInfo.wizard.cost)){
-                if(!shopCreaturesInfo[name].count){createTable("wizard",4);}
+                if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").append(createTable("wizard",4));}
                 putItem("wizard");
+                document.getElementById("info_wizard").dispatchEvent(new Event('click'));
             }  
         }else{
             if(shopCreaturesInfo[name].count){
                 sellItem('wizard');
+                document.getElementById("info_wizard").dispatchEvent(new Event('click'));
+                checkBorder();  
                 if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").removeChild(document.getElementById('wizard_table'))}
             }
         }
     }
     let wizardCost = createShopPrice("wizard");
     let wizardCount = createShopItemСount("wizard");
+    wizard_div.append(info_div);
     wizard_div.append(wizardCost);
     wizard_div.append(wizardCount);
     wizard_div.append(wizard);
@@ -428,23 +540,39 @@ function createTower(){
     tower_div.style.position = "absolute";    
     let name = "tower";
     let tower= createShopItem('Tower','tower');
+    let info_div = createShopInfoDiv("tower");
     tower.style.cursor = "pointer";
-    tower.addEventListener('click', addCountUp, false);
-    function addCountUp(){            
+    tower.addEventListener('click', addCountUpTower, false);
+    tower.addEventListener('mouseover', showInfoTower, false);
+    tower.addEventListener('mouseout', hideInfoTower, false);
+    function showInfoTower(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+        document.getElementById("info_tower").dispatchEvent(new Event('click'));
+    }
+    function hideInfoTower(){
+        info_div.style.display = "none";
+    }
+    function addCountUpTower(){            
         if(!isSell){
             if(buyItem(shopCreaturesInfo.tower.cost)){
-                if(!shopCreaturesInfo[name].count){createTable("tower",5);}
+                if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").append(createTable("tower",5));}
                 putItem("tower");
+                document.getElementById("info_tower").dispatchEvent(new Event('click'));
             }      
         }else{
             if(shopCreaturesInfo[name].count){
                 sellItem('tower');
+                document.getElementById("info_tower").dispatchEvent(new Event('click'));
+                checkBorder();  
                 if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").removeChild(document.getElementById('tower_table'))}
             }
         }
     }
     let towerCost = createShopPrice("tower");
     let towerCount = createShopItemСount("tower");
+    tower_div.append(info_div);
     tower_div.append(towerCost);
     tower_div.append(towerCount);
     tower_div.append(tower);    
@@ -457,30 +585,114 @@ function createCastle(){
     castle_div.style.position = "absolute";    
     let name = "castle";
     let castle= createShopItem('Castle','castle');
+    let info_div = createShopInfoDiv("castle");
     castle.style.cursor = "pointer";
-    castle.addEventListener('click', addCountUp, false);
-    function addCountUp(){            
+    castle.addEventListener('click', addCountUpCastle, false);
+    castle.addEventListener('mouseover', showInfoCastle, false);
+    castle.addEventListener('mouseout', hideInfoCastle, false);
+    function showInfoCastle(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+        document.getElementById("info_castle").dispatchEvent(new Event('click'));
+    }
+    function hideInfoCastle(){
+        info_div.style.display = "none";
+    }
+    function addCountUpCastle(){            
         if(!isSell){
             if(buyItem(shopCreaturesInfo.castle.cost)){
                 if (!shopCreaturesInfo[name].count){
                     firework();
                 }
-                if(!shopCreaturesInfo[name].count){createTable("castle",6);}
+                if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").append(createTable("castle",6));}
                 putItem("castle");
+                document.getElementById("info_castle").dispatchEvent(new Event('click'));
             }      
         }else{
             if(shopCreaturesInfo[name].count){
                 sellItem('castle');
+                document.getElementById("info_castle").dispatchEvent(new Event('click'));
+                checkBorder()
                 if(!shopCreaturesInfo[name].count){document.getElementById("mapDiv").removeChild(document.getElementById('castle_table'))}
             }
         }
     }
     let castleCost = createShopPrice("castle");
     let castleCount = createShopItemСount("castle");
+    castle_div.append(info_div);
     castle_div.append(castleCost);
     castle_div.append(castleCount);
     castle_div.append(castle);    
     return castle_div;
+}
+function createInfoSellBuyDiv(){
+    let info_div = document.createElement('div');
+    info_div.style.display = "none";
+    info_div.style.padding = "10px";
+    info_div.style.background = "#f3f3f3";
+    info_div.style.height = "40px";
+    info_div.style.width = "90px";
+    info_div.style.top = "27px";
+    info_div.style.left = "-50px";
+    info_div.textContent = "Plus: buy\nMinus: sell";
+    return info_div;
+}
+function createPlus(){
+    let plus = document.createElement('img')
+    plus.src = 'images/plus.png';
+    plus.style.position = "relative";
+    plus.style.width = "20px";
+    plus.style.cursor = "pointer";
+    plus.id = "plus";
+    plus.style.border = "2px solid #ffd700";
+    plus.addEventListener('click', buy, false);
+    function buy(){
+        isSell = 0;
+        document.getElementById("minus").style.border = "2px solid gray";
+        plus.style.border = "2px solid #ffd700";
+    }
+    return plus;
+}
+function createMinus(){
+    let minus = document.createElement('img')
+    minus.src = 'images/minus.png';
+    minus.style.position = "relative";
+    minus.style.marginLeft = "3px";
+    minus.style.width = "20px";
+    minus.style.cursor = "pointer";
+    minus.id = "minus";
+    minus.addEventListener('click', sell, false);
+    minus.style.border = "2px solid gray";
+    function sell(){
+        isSell = 1;
+        document.getElementById("plus").style.border = "2px solid gray";
+        minus.style.border = "2px solid #ffd700";
+    }
+    return minus;
+}
+function createPlusMinisDiv(){
+    let plus_minus_div = document.createElement('div');
+    plus_minus_div.style.position = "absolute";
+    plus_minus_div.style.width = "58px";
+    plus_minus_div.style.height = "20px";
+    plus_minus_div.style.left = "260px";
+    plus_minus_div.style.top = "5px";  
+    let info_div = createInfoSellBuyDiv();
+    plus_minus_div.addEventListener('mouseover', showInfo, false);
+    plus_minus_div.addEventListener('mouseout', hideInfo, false);
+    function showInfo(){
+        info_div.style.display = "block";
+        info_div.style.position = "absolute";
+        info_div.style.zIndex = "9999";
+    }
+    function hideInfo(){
+        info_div.style.display = "none";
+    }
+    plus_minus_div.append(info_div);
+    plus_minus_div.append(createPlus());
+    plus_minus_div.append(createMinus());
+    return plus_minus_div
 }
 function createShop(){
     let shop_div = document.createElement('div');
@@ -499,41 +711,7 @@ function createShop(){
     price.id = "Price";
     price.style.userSelect = "none";
     shop_div.append(price);
-    let plus_minus_div = document.createElement('div');
-    plus_minus_div.style.position = "absolute";
-    plus_minus_div.style.width = "58px";
-    plus_minus_div.style.height = "20px";
-    plus_minus_div.style.left = "260px";
-    plus_minus_div.style.top = "5px";
-    let plus = document.createElement('img')
-    plus.src = 'images/plus.png';
-    plus.style.position = "relative";
-    plus.style.width = "20px";
-    plus.style.cursor = "pointer";
-    plus.style.border = "2px solid #ffd700";
-    plus.addEventListener('click', buy, false);
-    function buy(){
-        isSell = 0;
-        minus.style.border = "2px solid gray";
-        plus.style.border = "2px solid #ffd700";
-    }
-    let minus = document.createElement('img')
-    minus.src = 'images/minus.png';
-    minus.style.position = "relative";
-    minus.style.marginLeft = "3px";
-    minus.style.width = "20px";
-    minus.style.cursor = "pointer";
-    minus.setAttribute('id', 'minus');
-    minus.addEventListener('click', sell, false);
-    minus.style.border = "2px solid gray";
-    function sell(){
-        isSell = 1;
-        plus.style.border = "2px solid gray";
-        minus.style.border = "2px solid #ffd700";
-    }
-    plus_minus_div.append(plus);
-    plus_minus_div.append(minus);
-    shop_div.append(plus_minus_div);
+    shop_div.append(createPlusMinisDiv());
     shop_div.append(createPeasant());
     shop_div.append(createHut());
     shop_div.append(createWarrior());
@@ -550,11 +728,11 @@ function createAwardPrice(name, awardCreaturesItem, cost){
     awardCost.textContent = cost;
     awardCost.style.userSelect = "none";
     awardCost.setAttribute("awardCreaturesItem", awardCreaturesItem)
-    function changePrice(){ 
+    function changeAwardPrice(){ 
         let new_cost = eval("awardsCreaturesInfo."+awardCreaturesItem+".cost") 
         awardCost.textContent = priceList(new_cost);
     }
-    awardCost.addEventListener("click",changePrice,false);
+    awardCost.addEventListener("click",changeAwardPrice,false);
     awardCost.dispatchEvent(new Event("click"));
     return awardCost;
 }
@@ -562,8 +740,8 @@ function createAwardItem(image, alt, id){
     let award = document.createElement('img');
     award.src = image;
     award.style.cursor = "pointer";
-    award.addEventListener('load', LoadAward, false);
-    function LoadAward() { 
+    award.addEventListener('load', loadAward, false);
+    function loadAward() { 
         award.setAttribute('alt', alt);
         award.setAttribute('id', id);
         award.className = "imageAward";
@@ -577,17 +755,32 @@ function createUpgrade(top,alt,id,item){
     upgrade_div.style.position = "absolute";
     let img = 'images/upgrade/'+id+'.png';
     let upgrade = createAwardItem(img,alt,id);
-    upgrade.style.border = "2px solid #ffd700"
-    upgrade.addEventListener('click', addCountUp, false);
-    function addCountUp(){            
+    let info_div=createAwardInfoDiv(id,item);
+    upgrade.addEventListener('click', addUpgrade, false);
+    upgrade.addEventListener('mouseover', showInfoUpgrade, false);
+    upgrade.addEventListener('mouseout', hideInfoUpgrade, false);
+    function showInfoUpgrade(){
+        if(awardsCreaturesInfo[id].isExist==0){
+            info_div.style.display = "block";
+            info_div.style.position = "absolute";
+            info_div.style.zIndex = "9999";
+        }
+    }
+    function hideInfoUpgrade(){
+        info_div.style.display = "none";
+    }
+    function addUpgrade(){            
         if(awardsCreaturesInfo[id].isExist == 0 && buyItem(awardsCreaturesInfo[id].cost, awardsCreaturesInfo[id].profit)){
             awardsCreaturesInfo[id].isExist = 1;
             shopCreaturesInfo[item].profit = shopCreaturesInfo[item].profit*2;
-            countPassiveEarn();
-            upgrade.style.border = "2px solid gray";
+            passiveEarn = countPassiveEarn();
+            document.getElementById("earn").dispatchEvent(new Event("click"));
+            checkBorder();
+            document.getElementById("info_"+id).style.display = "none";
         }      
     }
     let upgradeCost = createAwardPrice(id+'_price', id, awardsCreaturesInfo[id].cost);
+    upgrade_div.append(info_div);
     upgrade_div.append(upgradeCost);
     upgrade_div.append(upgrade); 
     return upgrade_div;
@@ -647,23 +840,7 @@ function coins(){
         }
     }());    
 }
-function createCoin(){
-    let coin_div = document.createElement('div');
-    coin_div.style.width = "342px";
-    coin_div.style.float = "left";
-    coin_div.className = "leftBlock";   
-    coin_div.id = "coinDiv";  
-    let score_h = document.createElement("H1");
-    score_h.id = "text";
-    score_h.style.color = "white";
-    score_h.style.position = 'fixed';
-    score_h.style.marginLeft = "5px";
-    score_h.style.marginTop = "400px";
-    score_h.style.userSelect = "none";
-    score_h.addEventListener('click', changeText, false);
-    function changeText(){
-        score_h.textContent = "Money: " + priceList(money);
-    }
+function createImageCoin(){
     let coin= document.createElement('img');
     coin.style.cursor = "pointer";
     coin.src = 'images/coin.gif';
@@ -680,7 +857,8 @@ function createCoin(){
         coin.addEventListener('click', addMoney, false);
         function addMoney(){
             money = money + 10;
-            document.getElementById("text").dispatchEvent(new Event("click"));            
+            document.getElementById("text").dispatchEvent(new Event("click"));     
+            checkBorder();  
         }
         setInterval(function run() {
             money = money + passiveEarn;
@@ -688,8 +866,7 @@ function createCoin(){
             if(passiveEarn>0)coins();
             if(isGame>0){
                 localStorage.setItem('money',money);
-                for(element in shopCreaturesInfo)
-                {
+                for(element in shopCreaturesInfo){
                     localStorage.setItem(element+'Cost',shopCreaturesInfo[element].cost);
                     localStorage.setItem(element+'Count',shopCreaturesInfo[element].count);
                     localStorage.setItem(element+'Profit',shopCreaturesInfo[element].profit);
@@ -697,11 +874,50 @@ function createCoin(){
                 for(element in awardsCreaturesInfo){
                     localStorage.setItem(element,awardsCreaturesInfo[element].isExist);
                 }
-            }                     
+            }               
+            checkBorder();        
           }, 2000);
     }
-    coin_div.append(score_h);
-    coin_div.append(coin);
+    return coin;
+}
+function createInfoCoin(){
+    let info_div = document.createElement('div');
+    info_div.style.width = "342px";
+    info_div.style.height = "100px";
+    info_div.style.marginTop = "80px";
+    let score_h = document.createElement("H1");
+    score_h.id = "text";
+    score_h.style.color = "white";
+    score_h.style.userSelect = "none";
+    score_h.style.height = "40px";
+    score_h.textContent = "Money: " + priceList(money);
+    score_h.addEventListener('click', changeMoneyText, false);
+    function changeMoneyText(){
+        score_h.textContent = "Money: " + priceList(money);
+    }
+    let earn_h = document.createElement("H3");
+    earn_h.id = "earn";
+    earn_h.style.color = "white";
+    earn_h.style.userSelect = "none";
+    earn_h.style.marginTop = "5px";
+
+    earn_h.addEventListener('click', changeEarnText, false);
+    earn_h.textContent = "Passive earning: " + priceList(passiveEarn);
+    function changeEarnText(){
+        earn_h.textContent = "Passive earning: " + priceList(passiveEarn);
+    }
+    info_div.append(score_h);
+    info_div.append(earn_h);
+    return info_div;
+}
+function createCoin(){
+    let coin_div = document.createElement('div');
+    coin_div.style.width = "342px";
+    coin_div.style.float = "left";
+    coin_div.className = "leftBlock";   
+    coin_div.id = "coinDiv";  
+    coin_div.append(createImageCoin());
+    coin_div.append(createInfoCoin());
     return coin_div;
 }
 function createMap(){
@@ -711,26 +927,25 @@ function createMap(){
     map_div.style.height = "100vh";
     map_div.style.marginRight = "342px";
     map_div.style.marginLeft= "342px";
-    map_div.style.overflowY = "scroll";
     return map_div;
 }
 function createPanelMenu(id,textContent,byIdText,byIdOurDiv,byIdDiv){
-    let shop_h = document.createElement("H2");
-    shop_h.id = id;
-    shop_h.style.color = "white";
-    shop_h.textContent = textContent;
-    shop_h.style.textDecoration = "underline";
-    shop_h.style.textAlign = "center";
-    shop_h.style.userSelect = "none";
-    shop_h.style.cursor = "pointer";
-    shop_h.addEventListener('click', changeShopText, false);
-    function changeShopText(){
-        shop_h.style.textDecoration = "underline";
+    let panel_h = document.createElement("H2");
+    panel_h.id = id;
+    panel_h.style.color = "white";
+    panel_h.textContent = textContent;
+    panel_h.style.textDecoration = "underline";
+    panel_h.style.textAlign = "center";
+    panel_h.style.userSelect = "none";
+    panel_h.style.cursor = "pointer";
+    panel_h.addEventListener('click', changePanel, false);
+    function changePanel(){
+        panel_h.style.textDecoration = "underline";
         document.getElementById(byIdText).style.textDecoration = "none";
         document.getElementById(byIdOurDiv).style.visibility = "hidden";
         document.getElementById(byIdDiv).style.visibility = "visible";
     }
-    return shop_h;
+    return panel_h;
 }
 function createPanel(){
     let panel_div = document.createElement('div');
@@ -818,10 +1033,13 @@ function resumeGame(){
     for(element in awardsCreaturesInfo){
         awardsCreaturesInfo[element].isExist = Number(localStorage.getItem(element));
     }
-    countPassiveEarn();
+    passiveEarn = countPassiveEarn();
+    document.getElementById("earn").dispatchEvent(new Event("click"));
     putSavedAwards()
     isGame = 1;
     document.getElementById("menuDiv").style.display = "none"; 
+    document.getElementById("text").dispatchEvent(new Event("click"));
+    document.getElementById("earn").dispatchEvent(new Event("click"));
 }
 function createButtonResumeDiv(){
     let button_div = document.createElement('div');
