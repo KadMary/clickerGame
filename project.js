@@ -293,14 +293,14 @@ function createShopInfoDiv(name){
     info_div.style.display = "none";
     info_div.style.padding = "10px";
     info_div.style.background = "#f3f3f3";
-    info_div.style.height = "50px";
+    info_div.style.height = "75px";
     info_div.style.width = "110px";
     info_div.style.left = "-130px";
     info_div.addEventListener('click', changeTextContent, false);
     function changeTextContent(){
         let new_count = eval("shopCreaturesInfo." + name + ".count");
         let new_profit = eval("shopCreaturesInfo." + name + ".profit");
-        info_div.textContent = "Profit(1):" + priceList(new_profit) + "\nProfit(all):" + priceList(new_profit*new_count);
+        info_div.textContent = "It is a " + name+"\nProfit(1):" + priceList(new_profit) + "\nProfit(all):" + priceList(new_profit*new_count);
     }
     return info_div;
 }
